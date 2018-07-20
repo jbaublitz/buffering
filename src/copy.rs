@@ -14,6 +14,24 @@ impl<'a> Read for StreamReadBuffer<'a> {
     }
 }
 
+impl<'a> AsRef<[u8]> for StreamReadBuffer<'a> {
+    fn as_ref(&self) -> &[u8] {
+        match *self {
+            StreamReadBuffer::Growable(ref b) => b.get_ref().as_slice(),
+            StreamReadBuffer::Static(ref b) => b.get_ref(),
+        }
+    }
+}
+
+impl<'a> From<StreamWriteBuffer<'a>> for StreamReadBuffer<'a> {
+    fn from(v: StreamWriteBuffer<'a>) -> Self {
+        match v {
+            StreamWriteBuffer::Growable(b) => StreamReadBuffer::Growable(b),
+            StreamWriteBuffer::Static(b) => StreamReadBuffer::Static(Cursor::new(b.into_inner())),
+        }
+    }
+}
+
 pub enum StreamWriteBuffer<'a> {
     Growable(Cursor<Vec<u8>>),
     Static(Cursor<&'a mut [u8]>),
@@ -29,5 +47,14 @@ impl<'a> Write for StreamWriteBuffer<'a> {
 
     fn flush(&mut self) -> io::Result<()> {
         Ok(())
+    }
+}
+
+impl<'a> AsMut<[u8]> for StreamWriteBuffer<'a> {
+    fn as_mut(&mut self) -> &mut [u8] {
+        match *self {
+            StreamWriteBuffer::Growable(ref mut b) => b.get_mut().as_mut_slice(),
+            StreamWriteBuffer::Static(ref mut b) => b.get_mut(),
+        }
     }
 }
