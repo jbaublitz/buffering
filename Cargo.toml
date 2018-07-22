@@ -2,3 +2,12 @@
 name = "buffering"
 version = "0.1.0"
 authors = ["John Baublitz <john.m.baublitz@gmail.com>"]
+description = "A library primarily designed for network packet buffer operations"
+license = "BSD-3-Clause"
+repository = "https://github.com/jbaublitz/buffering"
+keywords = ["buffer", "network"]
+include = [
+    "**/*.rs",
+    "Cargo.toml",
+    "LICENSE",
+]

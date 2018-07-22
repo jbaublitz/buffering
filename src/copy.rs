@@ -37,13 +37,21 @@ impl<'a> StreamWriteBuffer<'a> {
         StreamWriteBuffer::Sized(Cursor::new(buf), 0)
     }
 
-    pub unsafe fn set_bytes_written(&mut self, size: usize) {
+    pub fn set_bytes_written(&mut self, size: usize) -> io::Result<()> {
         match *self {
-            StreamWriteBuffer::Growable(_, ref mut len) => {
+            StreamWriteBuffer::Growable(ref c, ref mut len) => {
+                if c.get_ref().len() < *len + size {
+                    return Err(io::Error::from(io::ErrorKind::InvalidInput));
+                }
                 *len += size;
+                Ok(())
             },
-            StreamWriteBuffer::Sized(_, ref mut len) => {
+            StreamWriteBuffer::Sized(ref c, ref mut len) => {
+                if c.get_ref().len() < *len + size {
+                    return Err(io::Error::from(io::ErrorKind::InvalidInput));
+                }
                 *len += size;
+                Ok(())
             },
         }
     }
