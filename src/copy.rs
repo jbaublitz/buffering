@@ -28,7 +28,7 @@ pub enum StreamWriteBuffer<'a> {
 impl<'a> StreamWriteBuffer<'a> {
     pub fn new_growable(cap: Option<usize>) -> Self {
         match cap {
-            Some(sz) => StreamWriteBuffer::Growable(Cursor::new(Vec::with_capacity(sz)), 0),
+            Some(sz) => StreamWriteBuffer::Growable(Cursor::new(vec![0; sz]), 0),
             None => StreamWriteBuffer::Growable(Cursor::new(vec![]), 0),
         }
     }
