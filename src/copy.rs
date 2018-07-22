@@ -2,6 +2,12 @@ use std::io::{self,Cursor,Read,Write};
 
 pub struct StreamReadBuffer<T>(Cursor<T>);
 
+impl<T> StreamReadBuffer<T> where T: AsRef<[u8]> {
+    pub fn new(buf: T) -> Self {
+        StreamReadBuffer(Cursor::new(buf))
+    }
+}
+
 impl<T> Read for StreamReadBuffer<T> where T: AsRef<[u8]> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.0.read(buf)
