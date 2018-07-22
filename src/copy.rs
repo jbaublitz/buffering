@@ -26,8 +26,8 @@ pub enum StreamWriteBuffer<'a> {
 }
 
 impl<'a> StreamWriteBuffer<'a> {
-    pub fn new_growable(cap: Option<usize>) -> Self {
-        match cap {
+    pub fn new_growable(size: Option<usize>) -> Self {
+        match size {
             Some(sz) => StreamWriteBuffer::Growable(Cursor::new(vec![0; sz]), 0),
             None => StreamWriteBuffer::Growable(Cursor::new(vec![]), 0),
         }
@@ -36,20 +36,31 @@ impl<'a> StreamWriteBuffer<'a> {
     pub fn new_sized(buf: &'a mut [u8]) -> Self {
         StreamWriteBuffer::Sized(Cursor::new(buf), 0)
     }
+
+    pub unsafe fn set_bytes_written(&mut self, size: usize) {
+        match *self {
+            StreamWriteBuffer::Growable(_, ref mut len) => {
+                *len += size;
+            },
+            StreamWriteBuffer::Sized(_, ref mut len) => {
+                *len += size;
+            },
+        }
+    }
 }
 
 impl<'a> Write for StreamWriteBuffer<'a> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         Ok(match *self {
             StreamWriteBuffer::Growable(ref mut c, ref mut len) => {
-                let bytes_read = c.write(buf)?;
-                *len += bytes_read;
-                bytes_read
+                let bytes_written = c.write(buf)?;
+                *len += bytes_written;
+                bytes_written
             },
             StreamWriteBuffer::Sized(ref mut c, ref mut len) => {
-                let bytes_read = c.write(buf)?;
-                *len += bytes_read;
-                bytes_read
+                let bytes_written = c.write(buf)?;
+                *len += bytes_written;
+                bytes_written
             },
         })
     }
@@ -71,8 +82,8 @@ impl<'a> AsRef<[u8]> for StreamWriteBuffer<'a> {
 impl<'a> AsMut<[u8]> for StreamWriteBuffer<'a> {
     fn as_mut(&mut self) -> &mut [u8] {
         match *self {
-            StreamWriteBuffer::Growable(ref mut c, ref len) => &mut c.get_mut()[0..*len],
-            StreamWriteBuffer::Sized(ref mut c, ref len) => &mut c.get_mut()[0..*len],
+            StreamWriteBuffer::Growable(ref mut c, _) => c.get_mut(),
+            StreamWriteBuffer::Sized(ref mut c, _) => c.get_mut(),
         }
     }
 }
