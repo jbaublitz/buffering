@@ -36,13 +36,6 @@ impl<'a> StreamWriteBuffer<'a> {
     pub fn new_sized(buf: &'a mut [u8]) -> Self {
         StreamWriteBuffer::Sized(Cursor::new(buf), 0)
     }
-
-    pub fn yield_buffer(&self) -> &[u8] {
-        match *self {
-            StreamWriteBuffer::Growable(ref c, ref len) => &c.get_ref()[0..*len],
-            StreamWriteBuffer::Sized(ref c, ref len) => &c.get_ref()[0..*len],
-        }
-    }
 }
 
 impl<'a> Write for StreamWriteBuffer<'a> {
@@ -69,8 +62,8 @@ impl<'a> Write for StreamWriteBuffer<'a> {
 impl<'a> AsRef<[u8]> for StreamWriteBuffer<'a> {
     fn as_ref(&self) -> &[u8] {
         match *self {
-            StreamWriteBuffer::Growable(ref c, _) => c.get_ref().as_ref(),
-            StreamWriteBuffer::Sized(ref c, _) => c.get_ref().as_ref(),
+            StreamWriteBuffer::Growable(ref c, ref len) => &c.get_ref()[0..*len],
+            StreamWriteBuffer::Sized(ref c, ref len) => &c.get_ref()[0..*len],
         }
     }
 }
@@ -78,8 +71,8 @@ impl<'a> AsRef<[u8]> for StreamWriteBuffer<'a> {
 impl<'a> AsMut<[u8]> for StreamWriteBuffer<'a> {
     fn as_mut(&mut self) -> &mut [u8] {
         match *self {
-            StreamWriteBuffer::Growable(ref mut c, _) => c.get_mut().as_mut(),
-            StreamWriteBuffer::Sized(ref mut c, _) => c.get_mut().as_mut(),
+            StreamWriteBuffer::Growable(ref mut c, ref len) => &mut c.get_mut()[0..*len],
+            StreamWriteBuffer::Sized(ref mut c, ref len) => &mut c.get_mut()[0..*len],
         }
     }
 }
