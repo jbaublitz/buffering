@@ -11,3 +11,6 @@ include = [
     "Cargo.toml",
     "LICENSE",
 ]
+
+[dependencies]
+mashup = "0.1.0"

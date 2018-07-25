@@ -1,39 +1,73 @@
-#[macro_export]
-macro_rules! struct_buffer {
-    ( $name:ident, $struct_name:ident, $( $field_name:ident : $type:ty ),* ) => {
+#![allow(unused_macros)]
+
+macro_rules! struct_and_union {
+    ( $name:ident, $struct_name:ident, $( $field_name:ident : $type:ty ),* ) => (
         #[derive(Debug,PartialEq,Copy,Clone)]
         #[repr(C,packed)]
         pub struct $struct_name {
-            $( $field_name: $type ),*
+            $( $field_name : $type ),*
         }
 
         pub union $name {
             structure: $struct_name,
             buffer: [u8; mem::size_of::<$struct_name>()],
         }
+    );
+}
 
-        impl $name {
-            pub fn new_buffer(buf: [u8; mem::size_of::<$struct_name>()]) -> Self {
-                $name { buffer: buf }
-            }
-
-            pub fn get_buffer(&self) -> &[u8; mem::size_of::<$struct_name>()] {
-                unsafe { &self.buffer }
-            }
-
-            pub fn new_struct(v: $struct_name) -> Self {
-                $name { structure: v }
-            }
-
-            pub fn get_struct(&self) -> &$struct_name {
-                unsafe { &self.structure }
-            }
-
-            pub fn get_struct_mut(&mut self) -> &mut $struct_name {
-                unsafe { &mut self.structure }
-            }
+macro_rules! impl_funcs {
+    ( $name:ident, $struct_name:ident ) => (
+        pub fn new_buffer(buf: [u8; mem::size_of::<$struct_name>()]) -> Self {
+            $name { buffer: buf }
         }
 
+        pub fn get_buffer(&self) -> &[u8; mem::size_of::<$struct_name>()] {
+            unsafe { &self.buffer }
+        }
+
+        pub fn new_struct(v: $struct_name) -> Self {
+            $name { structure: v }
+        }
+
+        pub fn get_struct(&self) -> &$struct_name {
+            unsafe { &self.structure }
+        }
+
+        pub fn get_struct_mut(&mut self) -> &mut $struct_name {
+            unsafe { &mut self.structure }
+        }
+    );
+}
+
+macro_rules! impl_sub_macro {
+    ( $name:ident, $struct_name:ident, $( $field_name:ident : $type:ty ),* ) => (
+        mashup! {
+            $(
+                getset["get" $field_name] = get_ $field_name;
+                getset["set" $field_name] = set_ $field_name;
+            )*
+        }
+
+        getset! {
+            impl $name {
+                impl_funcs!( $name, $struct_name );
+
+                $(
+                    pub fn "get" $field_name(&self) -> &$type {
+                        unsafe { &self.structure.$field_name }
+                    }
+
+                    pub fn "set" $field_name(&mut self, val: $type) {
+                        unsafe { self.structure.$field_name = val };
+                    }
+                )*
+            }
+        }
+    );
+}
+
+macro_rules! as_ref {
+    ( $name:ident ) => (
         impl AsRef<[u8]> for $name {
             fn as_ref(&self) -> &[u8] {
                 unsafe { &self.buffer }
@@ -45,7 +79,18 @@ macro_rules! struct_buffer {
                 unsafe { &mut self.buffer }
             }
         }
-    }
+    );
+}
+
+#[macro_export]
+macro_rules! struct_buffer {
+    ( $name:ident, $struct_name:ident, $( $field_name:ident : $type:ty ),* ) => (
+        struct_and_union!( $name, $struct_name, $( $field_name: $type ),* );
+
+        impl_sub_macro!( $name, $struct_name, $( $field_name: $type ),* );
+
+        as_ref!( $name );
+    );
 }
 
 #[cfg(test)]
@@ -53,7 +98,8 @@ mod test {
     use std::mem;
 
     #[test]
-    fn test_macro_succeed() {
+    #[allow(dead_code)]
+    fn test_macro() {
         struct_buffer!(MyNetworkPacketUnion, MyNetworkPacket, field1: u8, field2: u16, field3: [u8; 4]);
 
         let mut un = MyNetworkPacketUnion::new_struct(MyNetworkPacket {
