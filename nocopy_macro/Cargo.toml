@@ -1,0 +1,12 @@
+[package]
+name = "nocopy_macro"
+version = "0.1.0"
+authors = ["John Baublitz <john.m.baublitz@gmail.com>"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "*"
+syn = "*"
+proc-macro2 = "*"

@@ -13,4 +13,4 @@ include = [
 ]
 
 [dependencies]
-mashup = "0.1.0"
+nocopy_macro = { path = "./nocopy_macro" }
