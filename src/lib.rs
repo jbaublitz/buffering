@@ -12,11 +12,13 @@ mod test {
     #[test]
     fn test_proc_macro() {
         #[derive(Copy,Clone,NoCopy)]
-        #[name = "TestBuffer"]
+        #[name = "TestBufferThing"]
         pub struct Test {
             test: u8,
         }
 
-        let tb = TestBuffer::new_buffer([0]);
+        let mut tb = TestBufferThing::new_buffer([0]);
+        tb.set_test(5);
+        assert_eq!(tb.as_buffer(), [5]);
     }
 }
