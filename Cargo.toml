@@ -13,4 +13,4 @@ include = [
 ]
 
 [dependencies]
-nocopy_macro = { path = "./nocopy_macro" }
+nocopy_macro = { path = "./nocopy_macro", version = "0.1.0" }
