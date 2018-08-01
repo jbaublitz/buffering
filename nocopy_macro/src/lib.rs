@@ -12,7 +12,7 @@ enum Endian {
     Default,
 }
 
-fn extract_attr_name(ast: &syn::DeriveInput, attrname: &mut syn::Ident) {
+fn extract_attr_name(ast: &syn::DeriveInput) -> syn::Ident {
     for attr in &ast.attrs {
         match attr.style {
             syn::AttrStyle::Outer => (),
@@ -22,12 +22,13 @@ fn extract_attr_name(ast: &syn::DeriveInput, attrname: &mut syn::Ident) {
         match attrnamemeta {
             Some(syn::Meta::NameValue(syn::MetaNameValue { ident, eq_token: _, lit: syn::Lit::Str(s) })) => {
                 if ident == syn::Ident::new("name", proc_macro2::Span::call_site()) {
-                    *attrname = syn::Ident::new(s.value().as_str(), proc_macro2::Span::call_site());
+                    return syn::Ident::new(s.value().as_str(), proc_macro2::Span::call_site());
                 }
             },
             _ => panic!("Outer attribute must be in the form #[key = \"value\"]"),
         };
     }
+    syn::Ident::new(format!("{}Buffer", ast.ident).as_ref(), proc_macro2::Span::call_site())
 }
 
 fn match_endian(named_field: &syn::Field) -> proc_macro2::TokenStream {
@@ -99,8 +100,7 @@ pub fn no_copy(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).expect("Failed to parse input");
 
     let name = &ast.ident;
-    let mut attrname = syn::Ident::new(format!("{}Buffer", name).as_str(), proc_macro2::Span::call_site());
-    extract_attr_name(&ast, &mut attrname);
+    let attrname = extract_attr_name(&ast);
 
     let fields = match ast.data {
         syn::Data::Struct(structure) => structure.fields,
