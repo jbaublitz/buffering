@@ -7,6 +7,6 @@ authors = ["John Baublitz <john.m.baublitz@gmail.com>"]
 proc-macro = true
 
 [dependencies]
-quote = "*"
-syn = "*"
-proc-macro2 = "*"
+quote = "0.6.4"
+syn = "0.14.5"
+proc-macro2 = "0.4.9"
