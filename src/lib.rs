@@ -1,7 +1,7 @@
 #![feature(custom_attribute)]
 
 #[macro_use]
-extern crate nocopy_macro;
+extern crate buffering_nocopy_macro;
 
 pub mod copy;
 
