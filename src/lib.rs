@@ -1,5 +1,3 @@
-#![feature(custom_attribute)]
-
 #[macro_use]
 #[allow(unused_imports)]
 extern crate buffering_nocopy_macro;
