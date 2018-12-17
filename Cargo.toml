@@ -13,4 +13,8 @@ include = [
 ]
 
 [dependencies]
-buffering_nocopy_macro = { path = "./nocopy_macro", version = "0.1.0" }
+buffering_nocopy_macro = { path = "./nocopy_macro", version = "0.1.0", optional = true }
+
+[features]
+copy = []
+nocopy = ["buffering_nocopy_macro"]

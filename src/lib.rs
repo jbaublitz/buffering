@@ -1,11 +1,14 @@
 #![feature(custom_attribute)]
 
+#[cfg(feature = "nocopy")]
 #[macro_use]
 #[allow(unused_imports)]
 extern crate buffering_nocopy_macro;
 
+#[cfg(feature = "copy")]
 pub mod copy;
 
+#[cfg(feature = "copy")]
 pub use copy::*;
 
 #[cfg(test)]
