@@ -1,6 +1,6 @@
 [package]
 name = "buffering"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["John Baublitz <john.m.baublitz@gmail.com>"]
 description = "A library primarily designed for network packet buffer operations"
 license = "BSD-3-Clause"

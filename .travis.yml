@@ -4,4 +4,7 @@ rust:
 
 script:
   - cargo build
+  - cargo test
+  - cargo test --features=copy
   - cargo test --features=nocopy
+  - cargo test --features=copy,nocopy
