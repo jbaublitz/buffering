@@ -9,13 +9,23 @@ impl<T> StreamReadBuffer<T> where T: AsRef<[u8]> {
         StreamReadBuffer(Cursor::new(buf))
     }
 
+    fn get_cursor(&self) -> &Cursor<T> {
+        &self.0
+    }
+
+    fn get_cursor_mut(&mut self) -> &mut Cursor<T> {
+        &mut self.0
+    }
+
     /// Check whether the stream has reached the end of the underlying buffer
     pub fn at_end(&self) -> bool {
-        match self {
-            StreamReadBuffer(c) => {
-                c.position() == c.get_ref().as_ref().len() as u64
-            }
-        }
+        self.get_cursor().position() == self.get_cursor().get_ref().as_ref().len() as u64
+    }
+
+    /// Set cursor to end - this will effectively discard the remaining stream
+    pub fn set_at_end(&mut self) {
+        let len = self.get_cursor().get_ref().as_ref().len();
+        self.get_cursor_mut().set_position(len as u64);
     }
 }
 
