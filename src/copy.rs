@@ -1,25 +1,37 @@
 use std::io::{self,Cursor,Read,Write};
 
 /// A stream reader that will allow piece-by-piece reading of a buffer
-pub struct StreamReadBuffer<T>(Cursor<T>);
+pub struct StreamReadBuffer<T> {
+    buffer: Cursor<T>,
+    rewind_position: u64,
+}
 
 impl<T> StreamReadBuffer<T> where T: AsRef<[u8]> {
     /// Create a new reader with an underlying data type that can be expresssed as a byte slice
     pub fn new(buf: T) -> Self {
-        StreamReadBuffer(Cursor::new(buf))
+        StreamReadBuffer {
+            buffer: Cursor::new(buf),
+            rewind_position: 0,
+        }
     }
 
     fn get_cursor(&self) -> &Cursor<T> {
-        &self.0
+        &self.buffer
     }
 
     fn get_cursor_mut(&mut self) -> &mut Cursor<T> {
-        &mut self.0
+        &mut self.buffer
     }
 
     /// Check whether the stream has reached the end of the underlying buffer
     pub fn at_end(&self) -> bool {
         self.get_cursor().position() == self.get_cursor().get_ref().as_ref().len() as u64
+    }
+    
+    /// If an error occurs, call this function to rewind to the point in the stream before the last
+    /// read
+    pub fn rewind(&mut self) {
+        self.buffer.set_position(self.rewind_position)
     }
 
     /// Set cursor to end - this will effectively discard the remaining stream
@@ -31,13 +43,14 @@ impl<T> StreamReadBuffer<T> where T: AsRef<[u8]> {
 
 impl<T> Read for StreamReadBuffer<T> where T: AsRef<[u8]> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        self.0.read(buf)
+        self.rewind_position = self.buffer.position();
+        self.buffer.read(buf)
     }
 }
 
 impl<T> AsRef<[u8]> for StreamReadBuffer<T> where T: AsRef<[u8]> {
     fn as_ref(&self) -> &[u8] {
-        self.0.get_ref().as_ref()
+        self.buffer.get_ref().as_ref()
     }
 }
 
@@ -88,7 +101,11 @@ impl<'a> AsRef<[u8]> for StreamWriteBuffer<'a> {
 
 #[cfg(test)]
 mod test {
+    extern crate byteorder;
+
     use super::*;
+
+    use self::byteorder::{ReadBytesExt,BigEndian,LittleEndian};
 
     #[test]
     fn test_at_end_method() {
@@ -101,5 +118,15 @@ mod test {
         let last_read = &mut [0u8; 2];
         b.read(last_read).unwrap();
         assert_eq!(b.at_end(), true);
+    }
+
+    #[test]
+    fn test_rewind() {
+        let mut b = StreamReadBuffer::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        let usixteen = b.read_u16::<BigEndian>().unwrap();
+        assert_eq!(258, usixteen);
+        b.rewind();
+        let usixteen_try_again = b.read_u16::<LittleEndian>().unwrap();
+        assert_eq!(513, usixteen_try_again);
     }
 }
