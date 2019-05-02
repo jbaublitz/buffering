@@ -154,6 +154,12 @@ impl<'a> StreamWriteBuffer<'a> {
 
 }
 
+impl<'a> AsRef<[u8]> for StreamWriteBuffer<'a> {
+    fn as_ref(&self) -> &[u8] {
+        self.buffer_enum.as_ref()
+    }
+}
+
 impl<'a> Write for StreamWriteBuffer<'a> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         self.buffer_enum.write(buf)
