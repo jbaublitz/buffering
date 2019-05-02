@@ -4,6 +4,7 @@ use std::io::{self,Cursor,Read,Write};
 pub struct StreamReadBuffer<T> {
     buffer: Cursor<T>,
     rewind_position: u64,
+    size_hint: Option<usize>,
 }
 
 impl<T> StreamReadBuffer<T> where T: AsRef<[u8]> {
@@ -12,15 +13,33 @@ impl<T> StreamReadBuffer<T> where T: AsRef<[u8]> {
         StreamReadBuffer {
             buffer: Cursor::new(buf),
             rewind_position: 0,
+            size_hint: None,
         }
     }
 
+    /// Get underlying cursor reference
     fn get_cursor(&self) -> &Cursor<T> {
         &self.buffer
     }
 
+    /// Get mutable underlying cursor reference
     fn get_cursor_mut(&mut self) -> &mut Cursor<T> {
         &mut self.buffer
+    }
+
+    /// Return `true` if a size hint is present
+    pub fn has_size_hint(&self) -> bool {
+        self.size_hint.is_some()
+    }
+
+    /// Replace size hint with `None` and return `Some(size_hint)`
+    pub fn take_size_hint(&mut self) -> Option<usize> {
+        self.size_hint.take()
+    }
+
+    /// Return size hint without changing the stream's size hint struct member
+    pub fn peek_size_hint(&self) -> Option<usize> {
+        self.size_hint.clone()
     }
 
     /// Check whether the stream has reached the end of the underlying buffer
