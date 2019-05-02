@@ -78,34 +78,16 @@ impl<T> AsRef<[u8]> for StreamReadBuffer<T> where T: AsRef<[u8]> {
     }
 }
 
-/// A stream writer that will allow piece-by-piece writing of to a buffer
-pub enum StreamWriteBuffer<'a> {
-    /// A wrapper around a byte vector-based cursor
+enum StreamWriteEnum<'a> {
     Growable(Cursor<Vec<u8>>),
-    /// A wrapper around a mutable slice-based cursor
     Sized(Cursor<&'a mut [u8]>),
 }
 
-impl<'a> StreamWriteBuffer<'a> {
-    /// Create a new vector-based stream writer that can grow when written past buffer boundaries
-    pub fn new_growable(size: Option<usize>) -> Self {
-        match size {
-            Some(sz) => StreamWriteBuffer::Growable(Cursor::new(vec![0; sz])),
-            None => StreamWriteBuffer::Growable(Cursor::new(vec![])),
-        }
-    }
-
-    /// Create a new slice-based stream writer that will error when written past buffer boundaries
-    pub fn new_sized(buf: &'a mut [u8]) -> Self {
-        StreamWriteBuffer::Sized(Cursor::new(buf))
-    }
-}
-
-impl<'a> Write for StreamWriteBuffer<'a> {
+impl<'a> Write for StreamWriteEnum<'a> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         match *self {
-            StreamWriteBuffer::Growable(ref mut c) => c.write(buf),
-            StreamWriteBuffer::Sized(ref mut c) => c.write(buf),
+            StreamWriteEnum::Growable(ref mut c) => c.write(buf),
+            StreamWriteEnum::Sized(ref mut c) => c.write(buf),
         }
     }
 
@@ -114,12 +96,71 @@ impl<'a> Write for StreamWriteBuffer<'a> {
     }
 }
 
-impl<'a> AsRef<[u8]> for StreamWriteBuffer<'a> {
+impl<'a> AsRef<[u8]> for StreamWriteEnum<'a> {
     fn as_ref(&self) -> &[u8] {
         match *self {
-            StreamWriteBuffer::Growable(ref c) => &c.get_ref()[0..c.position() as usize],
-            StreamWriteBuffer::Sized(ref c) => &c.get_ref()[0..c.position() as usize],
+            StreamWriteEnum::Growable(ref c) => &c.get_ref()[0..c.position() as usize],
+            StreamWriteEnum::Sized(ref c) => &c.get_ref()[0..c.position() as usize],
         }
+    }
+}
+
+/// A stream writer that will allow piece-by-piece writing of to a buffer
+pub struct StreamWriteBuffer<'a> {
+    buffer_enum: StreamWriteEnum<'a>,
+    size_hint: Option<usize>,
+}
+
+impl<'a> StreamWriteBuffer<'a> {
+    /// Create a new vector-based stream writer that can grow when written past buffer boundaries
+    pub fn new_growable(size: Option<usize>) -> Self {
+        let buffer_enum = match size {
+            Some(sz) => StreamWriteEnum::Growable(Cursor::new(vec![0; sz])),
+            None => StreamWriteEnum::Growable(Cursor::new(vec![])),
+        };
+        StreamWriteBuffer {
+            buffer_enum,
+            size_hint: None,
+        }
+    }
+
+    /// Create a new slice-based stream writer that will error when written past buffer boundaries
+    pub fn new_sized(buf: &'a mut [u8]) -> Self {
+        StreamWriteBuffer {
+            buffer_enum: StreamWriteEnum::Sized(Cursor::new(buf)),
+            size_hint: None,
+        }
+    }
+
+    /// Set size hint
+    pub fn set_size_hint(&mut self, size_hint: usize) {
+        self.size_hint = Some(size_hint);
+    }
+
+    /// Return `true` if a size hint is present
+    pub fn has_size_hint(&self) -> bool {
+        self.size_hint.is_some()
+    }
+
+    /// Replace size hint with `None` and return `Some(size_hint)`
+    pub fn take_size_hint(&mut self) -> Option<usize> {
+        self.size_hint.take()
+    }
+
+    /// Return size hint without changing the stream's size hint struct member
+    pub fn peek_size_hint(&self) -> Option<usize> {
+        self.size_hint.clone()
+    }
+
+}
+
+impl<'a> Write for StreamWriteBuffer<'a> {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.buffer_enum.write(buf)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        self.buffer_enum.flush()
     }
 }
 
