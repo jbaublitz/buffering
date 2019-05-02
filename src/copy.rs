@@ -27,6 +27,11 @@ impl<T> StreamReadBuffer<T> where T: AsRef<[u8]> {
         &mut self.buffer
     }
 
+    /// Set size hint
+    pub fn set_size_hint(&mut self, size_hint: usize) {
+        self.size_hint = Some(size_hint);
+    }
+
     /// Return `true` if a size hint is present
     pub fn has_size_hint(&self) -> bool {
         self.size_hint.is_some()
