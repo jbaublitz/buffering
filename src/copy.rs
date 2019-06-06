@@ -80,6 +80,7 @@ impl<T> AsRef<[u8]> for StreamReadBuffer<T> where T: AsRef<[u8]> {
 
 enum StreamWriteEnum<'a> {
     Growable(Cursor<Vec<u8>>),
+    GrowableRef(Cursor<&'a mut Vec<u8>>),
     Sized(Cursor<&'a mut [u8]>),
 }
 
@@ -87,6 +88,7 @@ impl<'a> Write for StreamWriteEnum<'a> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         match *self {
             StreamWriteEnum::Growable(ref mut c) => c.write(buf),
+            StreamWriteEnum::GrowableRef(ref mut c) => c.write(buf),
             StreamWriteEnum::Sized(ref mut c) => c.write(buf),
         }
     }
@@ -100,6 +102,7 @@ impl<'a> AsRef<[u8]> for StreamWriteEnum<'a> {
     fn as_ref(&self) -> &[u8] {
         match *self {
             StreamWriteEnum::Growable(ref c) => &c.get_ref()[0..c.position() as usize],
+            StreamWriteEnum::GrowableRef(ref c) => &c.get_ref()[0..c.position() as usize],
             StreamWriteEnum::Sized(ref c) => &c.get_ref()[0..c.position() as usize],
         }
     }
@@ -120,6 +123,14 @@ impl<'a> StreamWriteBuffer<'a> {
         };
         StreamWriteBuffer {
             buffer_enum,
+            size_hint: None,
+        }
+    }
+
+    /// Create a new vector-based stream that takes a mutable reference instead of an owned value
+    pub fn new_growable_ref(vec_ref: &'a mut Vec<u8>) -> Self {
+        StreamWriteBuffer {
+            buffer_enum: StreamWriteEnum::GrowableRef(Cursor::new(vec_ref)),
             size_hint: None,
         }
     }
@@ -152,6 +163,14 @@ impl<'a> StreamWriteBuffer<'a> {
         self.size_hint.clone()
     }
 
+    /// Set position of underlying cursor
+    pub fn set_position(&mut self, position: u64) {
+        match self.buffer_enum {
+            StreamWriteEnum::Growable(ref mut c) => c.set_position(position),
+            StreamWriteEnum::GrowableRef(ref mut c) => c.set_position(position),
+            StreamWriteEnum::Sized(ref mut c) => c.set_position(position),
+        }
+    }
 }
 
 impl<'a> AsRef<[u8]> for StreamWriteBuffer<'a> {
