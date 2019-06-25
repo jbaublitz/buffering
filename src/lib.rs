@@ -1,5 +1,4 @@
 #![deny(missing_docs)]
-#![feature(custom_attribute)]
 
 //! # Approach
 //! This crate is meant to provide two methods for serializing and deserializing with buffer
