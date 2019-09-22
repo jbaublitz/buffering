@@ -1,4 +1,4 @@
-use std::io::{self,Cursor,Read,Write};
+use std::io::{self, Cursor, Read, Write};
 
 /// A stream reader that will allow piece-by-piece reading of a buffer
 pub struct StreamReadBuffer<T> {
@@ -7,7 +7,10 @@ pub struct StreamReadBuffer<T> {
     size_hint: Option<usize>,
 }
 
-impl<T> StreamReadBuffer<T> where T: AsRef<[u8]> {
+impl<T> StreamReadBuffer<T>
+where
+    T: AsRef<[u8]>,
+{
     /// Create a new reader with an underlying data type that can be expresssed as a byte slice
     pub fn new(buf: T) -> Self {
         StreamReadBuffer {
@@ -51,7 +54,7 @@ impl<T> StreamReadBuffer<T> where T: AsRef<[u8]> {
     pub fn at_end(&self) -> bool {
         self.get_cursor().position() == self.get_cursor().get_ref().as_ref().len() as u64
     }
-    
+
     /// If an error occurs, call this function to rewind to the point in the stream before the last
     /// read
     pub fn rewind(&mut self) {
@@ -65,14 +68,20 @@ impl<T> StreamReadBuffer<T> where T: AsRef<[u8]> {
     }
 }
 
-impl<T> Read for StreamReadBuffer<T> where T: AsRef<[u8]> {
+impl<T> Read for StreamReadBuffer<T>
+where
+    T: AsRef<[u8]>,
+{
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.rewind_position = self.buffer.position();
         self.buffer.read(buf)
     }
 }
 
-impl<T> AsRef<[u8]> for StreamReadBuffer<T> where T: AsRef<[u8]> {
+impl<T> AsRef<[u8]> for StreamReadBuffer<T>
+where
+    T: AsRef<[u8]>,
+{
     fn as_ref(&self) -> &[u8] {
         self.buffer.get_ref().as_ref()
     }
@@ -195,7 +204,7 @@ mod test {
 
     use super::*;
 
-    use self::byteorder::{ReadBytesExt,BigEndian,LittleEndian};
+    use self::byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 
     #[test]
     fn test_at_end_method() {

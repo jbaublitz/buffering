@@ -41,7 +41,7 @@ mod test {
 
     #[test]
     fn test_proc_macro() {
-        #[derive(Copy,Clone,NoCopy)]
+        #[derive(Copy, Clone, NoCopy)]
         #[name = "TestBufferThing"]
         pub struct Test {
             test: u8,
@@ -51,7 +51,7 @@ mod test {
         tb.set_test(5);
         assert_eq!(tb.as_buffer(), [5]);
 
-        #[derive(Copy,Clone,NoCopy)]
+        #[derive(Copy, Clone, NoCopy)]
         #[name = "TestBufferThingTwo"]
         pub struct TestTwo {
             #[endian = "big"]
@@ -61,7 +61,7 @@ mod test {
         let tb = TestBufferThingTwo::new_buffer([0, 5]);
         assert_eq!(tb.get_test(), 5);
 
-        #[derive(Copy,Clone,NoCopy)]
+        #[derive(Copy, Clone, NoCopy)]
         #[name = "TestBufferThingThree"]
         pub struct TestThree {
             #[endian = "little"]
