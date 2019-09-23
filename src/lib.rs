@@ -24,25 +24,26 @@
 /// A more restrictive macro-based approach to serializing and deserializing into buffers with some
 /// unsafe code to remove copy overhead
 #[cfg(feature = "nocopy")]
-#[macro_use]
 #[allow(unused_imports)]
 extern crate buffering_nocopy_macro;
 
+#[cfg(feature = "nocopy")]
+pub use buffering_nocopy_macro::NoCopy;
+
 /// A more flexible way to serialize and deserialize into buffers that will have some copy overhead
 #[cfg(feature = "copy")]
-pub mod copy;
+mod copy;
 
 #[cfg(feature = "copy")]
 pub use copy::*;
 
-#[cfg(all(test, nocopy))]
+#[cfg(all(test, feature = "nocopy"))]
 mod test {
-    use std::mem;
-
     #[test]
     fn test_proc_macro() {
         #[derive(Copy, Clone, NoCopy)]
-        #[name = "TestBufferThing"]
+        #[repr(C)]
+        #[nocopy_macro(name = "TestBufferThing")]
         pub struct Test {
             test: u8,
         }
@@ -52,9 +53,9 @@ mod test {
         assert_eq!(tb.as_buffer(), [5]);
 
         #[derive(Copy, Clone, NoCopy)]
-        #[name = "TestBufferThingTwo"]
+        #[repr(C)]
+        #[nocopy_macro(name = "TestBufferThingTwo", endian = "big")]
         pub struct TestTwo {
-            #[endian = "big"]
             test: u16,
         }
 
@@ -62,9 +63,9 @@ mod test {
         assert_eq!(tb.get_test(), 5);
 
         #[derive(Copy, Clone, NoCopy)]
-        #[name = "TestBufferThingThree"]
+        #[repr(C)]
+        #[nocopy_macro(name = "TestBufferThingThree", endian = "little")]
         pub struct TestThree {
-            #[endian = "little"]
             test: u16,
         }
 
