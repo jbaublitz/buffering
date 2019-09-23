@@ -39,6 +39,8 @@ pub use copy::*;
 
 #[cfg(all(test, feature = "nocopy"))]
 mod test {
+    use super::*;
+
     #[test]
     fn test_proc_macro() {
         #[derive(Copy, Clone, NoCopy)]
