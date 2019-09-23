@@ -4,6 +4,7 @@ version = "0.2.0"
 authors = ["John Baublitz <john.m.baublitz@gmail.com>"]
 description = "A proc-macro crate for buffering"
 license = "BSD-3-Clause"
+repository = "https://github.com/jbaublitz/buffering"
 
 [lib]
 proc-macro = true
