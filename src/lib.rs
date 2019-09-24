@@ -9,20 +9,17 @@
 //! unions to provide some level of safety when writing to fields in a struct while allowing the
 //! underlying struct to be interpreted as a slice. This is a C-like workflow but does provide
 //! some helpful guarantees that come with Rust like protection against buffer overflows and
-//! bounds checking. One very important note is the notion that structs that use the provided
-//! procedural macro must be completely allocatable on the stack. Compilation will fail if certain
+//! bounds checking. One very important note is that structs that use the provided
+//! procedural macro must be completely stack allocated. Compilation will fail if certain
 //! constructs that prevent size computation at compile time are used. As a result this really
-//! should only be used as an optimization for a more type safe common C workflow in very low level
-//! scenarios.
+//! should only be used as a Rust substitute with some additional safety for the common C workflow
+//! when doing things like parsing network packets.
 //!
 //! # Features
-//! Each module is feature-flagged at build time to avoid pulling in unnecessary code if only one is
-//! necessary.  Available features are:
+//! Each module is feature-flagged so that either or both can be used.  Available features are:
 //! * `copy`
 //! * `nocopy`
 
-/// A more restrictive macro-based approach to serializing and deserializing into buffers with some
-/// unsafe code to remove copy overhead
 #[cfg(feature = "nocopy")]
 #[allow(unused_imports)]
 extern crate buffering_nocopy_macro;
