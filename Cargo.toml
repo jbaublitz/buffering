@@ -21,3 +21,6 @@ buffering_nocopy_macro = { path = "./nocopy_macro", version = "0.2.0", optional 
 [features]
 copy = []
 nocopy = ["buffering_nocopy_macro"]
+
+[package.metadata.docs.rs]
+all-features = true
