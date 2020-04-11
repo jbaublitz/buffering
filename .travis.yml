@@ -10,3 +10,9 @@ script:
   - cargo clippy --all-features --all-targets -- -D warnings 
   - cargo build
   - cargo test
+
+  - cd nocopy_macro
+  - cargo fmt -- --check
+  - cargo clippy --all-features --all-targets -- -D warnings 
+  - cargo build
+  - cargo test
