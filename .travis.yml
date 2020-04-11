@@ -4,8 +4,7 @@ rust:
 - nightly
 
 script:
+  - cargo fmt -- --check
+  - cargo clippy --all-features --all-targets -- -D warnings 
   - cargo build
   - cargo test
-  - cargo test --features=copy
-  - cargo test --features=nocopy
-  - cargo test --features=copy,nocopy
