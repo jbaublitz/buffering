@@ -111,7 +111,7 @@ fn big_endian(
     get_ident: &Ident,
     set_ident: &Ident,
     ty: &Type,
-) -> quote::__rt::TokenStream {
+) -> quote::__private::TokenStream {
     quote! {
         pub fn #get_ident(&self) -> #ty {
             unsafe { #ty::from_be(self.structure.#ident) }
@@ -128,7 +128,7 @@ fn little_endian(
     get_ident: &Ident,
     set_ident: &Ident,
     ty: &Type,
-) -> quote::__rt::TokenStream {
+) -> quote::__private::TokenStream {
     quote! {
         pub fn #get_ident(&self) -> #ty {
             unsafe { #ty::from_le(self.structure.#ident) }
@@ -145,7 +145,7 @@ fn native_endian(
     get_ident: &Ident,
     set_ident: &Ident,
     ty: &Type,
-) -> quote::__rt::TokenStream {
+) -> quote::__private::TokenStream {
     quote! {
         pub fn #get_ident(&self) -> #ty {
             unsafe { self.structure.#ident }
@@ -157,7 +157,7 @@ fn native_endian(
     }
 }
 
-fn match_endian(named_field: &Field, endian: &Endian) -> quote::__rt::TokenStream {
+fn match_endian(named_field: &Field, endian: &Endian) -> quote::__private::TokenStream {
     let ident = match named_field.ident {
         Some(ref idt) => idt,
         None => panic!("All struct fields must be named"),
