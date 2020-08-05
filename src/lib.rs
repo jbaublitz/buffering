@@ -1,11 +1,8 @@
 #![deny(missing_docs)]
 
 //! # Approach
-//! This crate is meant to provide two methods for serializing and deserializing with buffer
-//! operations:
-//! * The `copy` module is a more flexible, high-level stream based approach for reading from and
-//! writing to buffers. This will introduce some overhead so do not use this if copies are a bottleneck.
-//! * The `nocopy` module is a more restrictive macro-based approach. It uses procedural macros and
+//! This crate is meant to provide a macro which behaves as follows:
+//! * The provided macro uses a more restrictive approach. It uses procedural macros and
 //! unions to provide some level of safety when writing to fields in a struct while allowing the
 //! underlying struct to be interpreted as a slice. This is a C-like workflow but does provide
 //! some helpful guarantees that come with Rust like protection against buffer overflows and
@@ -14,27 +11,10 @@
 //! constructs that prevent size computation at compile time are used. As a result this really
 //! should only be used as a Rust substitute with some additional safety for the common C workflow
 //! when doing things like parsing network packets.
-//!
-//! # Features
-//! Each module is feature-flagged so that either or both can be used.  Available features are:
-//! * `copy`
-//! * `nocopy`
 
-#[cfg(feature = "nocopy")]
-#[allow(unused_imports)]
-extern crate buffering_nocopy_macro;
-
-#[cfg(feature = "nocopy")]
 pub use buffering_nocopy_macro::NoCopy;
 
-/// A more flexible way to serialize and deserialize into buffers that will have some copy overhead
-#[cfg(feature = "copy")]
-mod copy;
-
-#[cfg(feature = "copy")]
-pub use copy::*;
-
-#[cfg(all(test, feature = "nocopy"))]
+#[cfg(test)]
 mod test {
     use super::*;
 

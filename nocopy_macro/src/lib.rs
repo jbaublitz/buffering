@@ -33,8 +33,8 @@ extern crate syn;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    export::Span, DeriveInput, Field, Ident, Lit, Meta, MetaList, MetaNameValue, NestedMeta, Path,
-    Type,
+    export::Span, Attribute, DeriveInput, Field, Ident, Lit, Meta, MetaList, MetaNameValue,
+    NestedMeta, Path, Type,
 };
 
 enum Endian {
@@ -58,17 +58,13 @@ fn extract_meta(ast: &syn::DeriveInput) -> (Ident, Endian) {
         let attrnamemeta = attr.parse_meta();
 
         match attrnamemeta {
-            Ok(Meta::List(MetaList {
-                path: _,
-                paren_token: _,
-                nested,
-            })) => {
+            Ok(Meta::List(MetaList { nested, .. })) => {
                 for nest in nested.into_iter() {
                     let (path, s) = match nest {
                         NestedMeta::Meta(Meta::NameValue(MetaNameValue {
                             path,
-                            eq_token: _,
                             lit: Lit::Str(s),
+                            ..
                         })) => (path, s),
                         _ => panic!("Malformed macro attribute"),
                     };
@@ -111,7 +107,7 @@ fn big_endian(
     get_ident: &Ident,
     set_ident: &Ident,
     ty: &Type,
-) -> quote::__rt::TokenStream {
+) -> quote::__private::TokenStream {
     quote! {
         pub fn #get_ident(&self) -> #ty {
             unsafe { #ty::from_be(self.structure.#ident) }
@@ -128,7 +124,7 @@ fn little_endian(
     get_ident: &Ident,
     set_ident: &Ident,
     ty: &Type,
-) -> quote::__rt::TokenStream {
+) -> quote::__private::TokenStream {
     quote! {
         pub fn #get_ident(&self) -> #ty {
             unsafe { #ty::from_le(self.structure.#ident) }
@@ -145,7 +141,7 @@ fn native_endian(
     get_ident: &Ident,
     set_ident: &Ident,
     ty: &Type,
-) -> quote::__rt::TokenStream {
+) -> quote::__private::TokenStream {
     quote! {
         pub fn #get_ident(&self) -> #ty {
             unsafe { self.structure.#ident }
@@ -157,7 +153,7 @@ fn native_endian(
     }
 }
 
-fn match_endian(named_field: &Field, endian: &Endian) -> quote::__rt::TokenStream {
+fn match_endian(named_field: &Field, endian: &Endian) -> quote::__private::TokenStream {
     let ident = match named_field.ident {
         Some(ref idt) => idt,
         None => panic!("All struct fields must be named"),
@@ -220,20 +216,14 @@ fn match_endian(named_field: &Field, endian: &Endian) -> quote::__rt::TokenStrea
 pub fn no_copy(input: TokenStream) -> TokenStream {
     let ast: DeriveInput = syn::parse(input).expect("Failed to parse input");
 
-    if ast
-        .attrs
-        .iter()
-        .filter(|item| {
-            item.parse_meta().expect("Provided attribute not valid")
-                == syn::parse::<Meta>(TokenStream::from(quote! {
-                    repr(C)
-                }))
-                .expect("Should be a valid attribute")
-        })
-        .collect::<Vec<_>>()
-        .len()
-        < 1
-    {
+    let filter = |item: &&Attribute| -> bool {
+        item.parse_meta().expect("Provided attribute not valid")
+            == syn::parse::<Meta>(TokenStream::from(quote! {
+                repr(C)
+            }))
+            .expect("Should be a valid attribute")
+    };
+    if ast.attrs.iter().find(filter).is_none() {
         panic!("Struct must be marked as #[repr(C)] to be used with this derive")
     }
 
