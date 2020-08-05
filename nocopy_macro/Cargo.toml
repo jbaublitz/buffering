@@ -1,7 +1,7 @@
 [package]
 name = "buffering_nocopy_macro"
 edition = "2018"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["John Baublitz <john.m.baublitz@gmail.com>"]
 description = "A proc-macro crate for buffering"
 license = "BSD-3-Clause"
